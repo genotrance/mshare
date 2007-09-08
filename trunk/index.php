@@ -8,10 +8,12 @@
 	include("misc.php");
 	include("process.php");
 
-	define("VERSION", "2.1");
+	define("VERSION", "2.2");
 	define("DATA", "data/data.xml");
 	define("LOG", "mshare2.log");
-	define("HEADER", "<head><title>mshare v".VERSION."</title><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"><script type=\"text/javascript\" language=\"javascript\" src=\"script.js\"></script></head>");
+	define("HEADER", "<head><title>mshare v".VERSION."</title><link rel=\"stylesheet\"".
+		" type=\"text/css\" href=\"style.css\"><script type=\"text/javascript\"".
+		" language=\"javascript\" src=\"script.js\"></script></head>");
 
 	// Object Arrays
 	$expenses = array();
@@ -98,6 +100,9 @@
 
 	if ($action == "CLOSE") {
 		commitChanges();
+	} else if ($action == "CHANGEPASS") {
+		changePass();
+		exit;
 	}
 
 	displayPage();

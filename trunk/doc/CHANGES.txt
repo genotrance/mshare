@@ -1,3 +1,10 @@
+Version 2.2
+-----------
+Improvements
+- Specify which file is selected in the dropdown box
+- Change password option functionality is now available
+- Transactions page now has a summary of expenses by description
+
 Version 2.1
 -----------
 New Features
