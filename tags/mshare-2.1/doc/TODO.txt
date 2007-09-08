@@ -1,0 +1,10 @@
+- Add A -> B -> C -> A minimization
+- Cleaner add/change password
+- Add email address field for a user
+- Set one user as administrator
+- Send transactions to users by email including administrator
+- History (when a person is deleted)
+
+- Update authentication module as available
+- Categorize expenses and summarize
+- Unlimited undo using diff
