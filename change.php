@@ -171,4 +171,26 @@
 
 		commitChanges();
 	}
+
+	// Function to change password
+	function changePass() {
+		global $HTTP_SERVER_VARS;
+		global $_POST;
+		
+		if (isset($_POST['login']) && 
+			isset($_POST['password']) &&
+			isset($HTTP_SERVER_VARS['PHP_AUTH_USER'])) {
+
+			$login = new HttpAuthPlus; 
+			$login->setAuthType('file'); 
+			$login->setAuthEncrypt('crypt');
+			$login->setAuthFile('data/.mshare.db');
+			$login->RmUser($HTTP_SERVER_VARS['PHP_AUTH_USER']);
+			$login->AddUser($_POST['login'], $_POST['password'], '');
+			
+			echo "Password changed successfully.";
+		} else {
+			displayChangePass();
+		}
+	}
 ?>

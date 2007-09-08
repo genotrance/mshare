@@ -8,6 +8,7 @@
 		$linkex = "nav";
 		$linkpe = "nav";
 		$linktr = "nav";
+		$linkch = "nav";
 
 		switch ($list) {
 			default:
@@ -20,6 +21,9 @@
 			case "TRANSACTIONS":
 				$linktr = "navsel";
 				break;
+			case "CHANGEPASS":
+				$linkch = "navsel";
+				break;
 		}
 
 
@@ -31,13 +35,15 @@
 		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=CLOSE\">Close File</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=RENUMBER\">Renumber</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=RESTORE\">Restore</a> ";
-		//echo "<a class=nav href=\"index.php?file=$file&list=$list&action=CHANGEPASS\">Change Password</a> ";
+		echo "<a class=$linkch href=\"index.php?file=$file&list=CHANGEPASS&action=CHANGEPASS\">Change Password</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=LOGOUT\">Logout</a> ";
 		echo "<select name=\"file\" OnChange=\"location.href=fileselect.file.options[selectedIndex].value\">";
 		echo "<option selected>Data file...";
 
 		for ($i = 0; $i < count($files); $i++) {
-			echo "<option value=\"index.php?file=$files[$i]\">$files[$i]";
+			if ($files[$i] == $file) $selected = " selected";
+			else $selected = "";
+			echo "<option value=\"index.php?file=$files[$i]\"$selected>$files[$i]\n";
 		}
 		
 		echo "</select></form></td></tr></table><pre>\n";
@@ -387,6 +393,7 @@
 				sortArray(&$persons);
 				sortExpensesDate();
 				commitChanges();
+				break;
 			default:
 		}
 
@@ -402,7 +409,54 @@
 				break;
 			case "TRANSACTIONS":
 				displayTransactions();
+				displayDescriptionSummary();
 				break;
 		}
+	}
+
+	function displayChangePass() {
+		global $file;
+		global $HTTP_SERVER_VARS;
+		
+		echo "</pre><b>CHANGE PASSWORD</b><br><br><form name=\"changepass\" action=\"index.php?file=$file&list=CHANGEPASS&action=CHANGEPASS\" method=\"post\">\n";
+		echo "<table><tr><td align=right>Login:</td><td><input type=\"text\" name=\"login\" value=\"".$HTTP_SERVER_VARS['PHP_AUTH_USER']."\"></td></tr>";
+		echo "<tr><td align=right>Password:</td><td><input type=\"password\" name=\"password\" onkeyup=\"javascript:checkPassword(changepass)\"></td></tr>\n";
+		echo "<tr><td align=right>Repeat:</td><td><input type=\"password\" name=\"passrepeat\" onkeyup=\"javascript:checkPassword(changepass)\"></td></tr>\n";
+		echo "<tr><td></td><td><input type=\"submit\" value=\"Change Password\" disabled></td></tr></table>\n";
+		echo "</form>\n";
+	}
+
+	function displayDescriptionSummary() {
+		global $expenses;
+		global $sort;
+		global $file;
+		global $list;
+		
+		$descSummary = array();
+		
+		sortExpensesDescription();
+		
+		for ($i = 0; $i < count($expenses); $i++) {
+			if (!array_key_exists($expenses[$i]->description, $descSummary)) {
+				$descSummary[$expenses[$i]->description] = $expenses[$i]->amount;
+			} else {
+				$descSummary[$expenses[$i]->description] += $expenses[$i]->amount;
+			}
+		}
+		
+		echo "\n       <a href=\"index.php?file=$file&list=$list&sort=DESCRIPTION\">Description</a>";
+		echo "          <a href=\"index.php?file=$file&list=$list&sort=AMOUNT\">Amount</a>\n";
+		echo "       -----------          ------\n";
+		
+		switch($sort) {
+			case "AMOUNT":
+				asort($descSummary, SORT_NUMERIC);
+				break;
+			default:
+		}
+		reset($descSummary);
+		while (list($key, $val) = each($descSummary))
+			printf("       %-19s %4.2f\n",
+				substr($key, 0, 17), $val);
 	}
 ?>

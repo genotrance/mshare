@@ -59,3 +59,29 @@ function togglePerson(id) {
 		}
 	}
 }
+
+// Check password and repeat are same and not ""
+function checkPassword(theform) {
+	if (document.all || document.getElementById) {
+		for (i = 0; i < theform.length; i++) {
+			var tempobj = theform.elements[i];
+
+			if (tempobj.type.toLowerCase() == "submit") {
+				submit = tempobj;
+			} else if (tempobj.type.toLowerCase() == "password") {
+				if (tempobj.name == "password") {
+					password = tempobj;
+				} else if (tempobj.name == "passrepeat") {
+					passrepeat = tempobj;
+				}
+			}
+		}
+		
+		if (password && passrepeat && submit) {
+			if (password.value != "" && passrepeat.value == password.value)
+				submit.disabled = false;
+			else
+				submit.disabled = true;
+		}
+	}
+}

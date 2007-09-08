@@ -793,9 +793,10 @@ class HttpAuthPlus {
       // lock the file for writing
       $this->FileLock($fp);
       // write the new info to the password file
-      foreach ($lines as $line) {
-         fputs($fp, "$line");
-      }
+      if (is_array($lines))
+	      foreach ($lines as $line) {
+	         fputs($fp, "$line");
+	      }
       // unlock the file
       $this->FileUnLock($fp);
       // close the file
