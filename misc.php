@@ -68,7 +68,27 @@
 			}
 		}
 	}
-	
+	// Sort Expense array by Description then date
+	function sortExpensesDescription() {
+		global $expenses;
+
+		for ($i = 0; $i < count($expenses); $i++) {
+			for ($j = $i; $j < count($expenses); $j++)  {
+				if (strcmp($expenses[$i]->description, $expenses[$j]->description) > 0) {
+					$tmp = $expenses[$i];
+					$expenses[$i] = $expenses[$j];
+					$expenses[$j] = $tmp;
+				} else if (strcmp($expenses[$i]->description, $expenses[$j]->description) == 0) {
+					if ($expenses[$i]->expenseDate > $expenses[$j]->expenseDate) {
+						$tmp = $expenses[$i];
+						$expenses[$i] = $expenses[$j];
+						$expenses[$j] = $tmp;
+					}
+				}
+			}
+		}
+	}
+
 	// Renumber $array object array IDs
 	function renumber($array) {
 		for ($i = 0; $i < count($array); $i++) {

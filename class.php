@@ -13,7 +13,9 @@
 		var $amount;
 		var $description;
 
-		function Expense($id, $sid, $aid, $expdate, $amt, $desc) {
+		var $deleted;
+
+		function Expense($id, $sid, $aid, $expdate, $amt, $desc, $del) {
 			// Check duplicate expense ID
 			if (findExpenseID($id) != -1) {
 				echo "Expense ID ".$id." already instantiated!";
@@ -30,14 +32,14 @@
 			$this->spenderID = $sid;
 
 			$tok = strtok($aid, ":");
+			while($tok) {
+				array_push($this->accountableIDs, $tok);
+				$tok = strtok(":");
+			}
 
-			if (!$tok) {
-				array_push($this->accountableIDs, $aid);
-			} else {
-				while($tok) {
-					array_push($this->accountableIDs, $tok);
-					$tok = strtok(":");
-				}
+			if (count($this->accountableIDs) == 0) {
+				echo "No accountable IDs specified.\n";
+				exit;
 			}
 
 			// Check for non-existant accountableIDs
@@ -51,6 +53,7 @@
 			$this->expenseDate = $expdate;
 			$this->amount = $amt;
 			$this->description = $desc;
+			$this->deleted = $del;
 		}
 	}
 
@@ -120,9 +123,10 @@
 			global $expenses;
 
 			for ($i = 0; $i < count($expenses); $i++) {
-				if ($expenses[$i]->spenderID == $this->ID) {
-					array_push($this->expenseList, &$expenses[$i]);
-				}
+				if (!$expenses[$i]->deleted)
+					if ($expenses[$i]->spenderID == $this->ID) {
+						array_push($this->expenseList, &$expenses[$i]);
+					}
 			}
 		}
 

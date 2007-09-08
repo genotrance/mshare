@@ -28,8 +28,10 @@
 		echo "<a class=$linkex href=\"index.php?file=$file&list=EXPENSES\">Expenses</a> ";
 		echo "<a class=$linkpe href=\"index.php?file=$file&list=PERSONS\">Persons</a> ";
 		echo "<a class=$linktr href=\"index.php?file=$file&list=TRANSACTIONS\">Transactions</a> ";
+		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=CLOSE\">Close File</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=RENUMBER\">Renumber</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=$list&action=RESTORE\">Restore</a> ";
+		//echo "<a class=nav href=\"index.php?file=$file&list=$list&action=CHANGEPASS\">Change Password</a> ";
 		echo "<a class=nav href=\"index.php?file=$file&list=LOGOUT\">Logout</a> ";
 		echo "<select name=\"file\" OnChange=\"location.href=fileselect.file.options[selectedIndex].value\">";
 		echo "<option selected>Data file...";
@@ -47,7 +49,9 @@
 		global $list;
 		global $file;
 
-		echo "</pre><form action=\"index.php\" method=\"get\">\n";
+		$curdate = array();
+
+		echo "</pre><form name=\"expense\" action=\"index.php\" method=\"get\">\n";
 		echo "<input type=\"hidden\" name=\"file\" value=\"$file\">\n";
 		echo "<input type=\"hidden\" name=\"type\" value=\"EXPENSE\">\n";
 
@@ -74,12 +78,18 @@
 		for ($i = 0; $i < count($persons); $i++) {
 			echo "<input type=\"checkbox\" name=\"accountable[{$persons[$i]->name}]\"";
 		       
-			if (count($accID) == 0) echo " CHECKED>{$persons[$i]->name} ";
-			else {
+			// Don't check accountables by default
+			//if (count($accID) == 0) echo " CHECKED>{$persons[$i]->name} ";
+			//else {
 				if (in_array($persons[$i]->ID, $accID)) echo " CHECKED";
 				echo ">{$persons[$i]->name} ";
-			}
+			//}
 		}
+
+		$curdate = getdate();
+		if ($month == -1) $month = $curdate["mon"];
+		if ($day == -1) $day = $curdate["mday"];
+		if ($year == -1) $year = $curdate["year"];
 
 		echo "</td></tr>\n<tr><td align=right>Date:</td><td><select name=\"date['month']\"><option value=\"-1\">mm\n";
 
@@ -122,10 +132,13 @@
 		global $expenses;
 		global $file;
 		global $sort;
+		global $closed;
+		global $list;
 
 		echo "  <a href=\"index.php?file=$file&list=EXPENSES&sort=ID\">ID</a>   Date        ";
 		echo "<a href=\"index.php?file=$file&list=EXPENSES&sort=NAME\">Name</a>      ";
-		echo "<a href=\"index.php?file=$file&list=EXPENSES&sort=AMOUNT\">Amount</a>   Description        Acccountable\n";
+		echo "<a href=\"index.php?file=$file&list=EXPENSES&sort=AMOUNT\">Amount</a>   ";
+		echo "<a href=\"index.php?file=$file&list=EXPENSES&sort=DESCRIPTION\">Description</a>        Acccountable\n";
 		echo "  --   ----------  --------  -------  -----------------  ------------\n";
 
 		switch ($sort) {
@@ -134,47 +147,127 @@
 				break;
 			case "AMOUNT":
 				sortExpensesAmount();
+				break;
+			case "DESCRIPTION":
+				sortExpensesDescription();
 			default:
 			case "ID":
 				break;
 		}
 
 		for ($i = 0; $i < count($expenses); $i++) {
-			printf("%4d   %s  %-8s  %4.2f  %-19s%-40s    ", 
-				$expenses[$i]->ID,
-				date("M d 'y", $expenses[$i]->expenseDate),
-				getPersonName($expenses[$i]->spenderID), 
-				$expenses[$i]->amount,
-				substr($expenses[$i]->description, 0, 17),
-				substr(accountableToString($expenses[$i]->accountableIDs), 0, 40));
+			if (!$expenses[$i]->deleted) {
+				if (!$closed) {
+					printf("%4d   <a href=\"javascript:setDate('%s');\">%s</a>  <a href=\"javascript:setSpender('%s');\">%-8s</a>  %4.2f  <a href=\"javascript:setDesc('%s');\">%-19s</a>%-40s    ", 
+						$expenses[$i]->ID,
+						$expenses[$i]->expenseDate,
+						date("M d 'y", $expenses[$i]->expenseDate),
+						getPersonName($expenses[$i]->spenderID), 
+						getPersonName($expenses[$i]->spenderID), 
+						$expenses[$i]->amount,
+						$expenses[$i]->description,
+						substr($expenses[$i]->description, 0, 17),
+						substr(accountableToString($expenses[$i]->accountableIDs), 0, 40));
 
-			echo "<font size=-3><a href=\"index.php?file=$file&action=EDIT&type=EXPENSE&expense={$expenses[$i]->ID}\">edit</a></font>   ";
-			echo "<font size=-3><a href=\"index.php?file=$file&action=DELETE&type=EXPENSE&expense={$expenses[$i]->ID}\">delete</a></font>\n";
+					echo "<font size=-3><a href=\"index.php?file=$file&list=EXPENSES&action=EDIT&type=EXPENSE&expense={$expenses[$i]->ID}\">edit</a></font>   ";
+					echo "<font size=-3><a href=\"index.php?file=$file&list=EXPENSES&action=DELETE&type=EXPENSE&expense={$expenses[$i]->ID}\">delete</a></font>\n";
+				} else {
+					printf("%4d   %s  %-8s  %4.2f  %-19s%-40s\n", 
+						$expenses[$i]->ID,
+						date("M d 'y", $expenses[$i]->expenseDate),
+						getPersonName($expenses[$i]->spenderID), 
+						$expenses[$i]->amount,
+						substr($expenses[$i]->description, 0, 17),
+						substr(accountableToString($expenses[$i]->accountableIDs), 0, 40));
+				}
+			}
 		}
 
-		displayAddExpense();
+		if (!$closed) displayAddExpense();
 	}
 
 	function displayPersons() {
 		global $persons;
+		global $expenses;
 		global $file;
+		global $closed;
 
-		echo "  ID   Name      Spent\n";
-		echo "  --   --------  -------\n";
+		echo "  ID   Name    \n";
+		echo "  --   --------\n";
 
 		for ($i = 0; $i < count($persons); $i++) {
-			printf("%4d   %-8s  %4.2f    ", $persons[$i]->ID, $persons[$i]->name, $persons[$i]->totalExpenses);
-			echo "<font size=-3><a href=\"index.php?file=$file&action=EDIT&type=PERSON&person={$persons[$i]->name}\">edit</a></font>  ";
-			echo "<font size=-3><a href=\"index.php?file=$file&action=DELETE&type=PERSON&person={$persons[$i]->name}\">delete</a></font>\n";
+			printf("%4d   <a href=\"javascript:togglePerson('%s');\">%-8s</a>    ", 
+				$persons[$i]->ID, 
+				$persons[$i]->name, 
+				$persons[$i]->name);
+			if (!$closed) {
+				echo "<font size=-3><a href=\"index.php?file=$file&list=PERSONS&action=EDIT&type=PERSON&person={$persons[$i]->name}\">edit</a></font>  ";
+				echo "<font size=-3><a href=\"index.php?file=$file&list=PERSONS&action=DELETE&type=PERSON&person={$persons[$i]->name}\">delete</a></font>";
+			}
+
+			echo "<div id=\"".$persons[$i]->name."\" style=\"display: none;\"><font size=-1>";
+			
+			$spent = "";
+			$owes = "";
+			$spentam = 0;
+			$owesam = 0;
+			for ($j = 0; $j < count($expenses); $j++) {
+				if (!$expenses[$j]->deleted) {
+					if ($expenses[$j]->spenderID == $persons[$i]->ID) {
+						$am = $expenses[$j]->amount;
+						for ($k = 0; $k < count($expenses[$j]->accountableIDs); $k++) {
+							if ($expenses[$j]->accountableIDs[$k] == $persons[$i]->ID) {
+								$am -= ($am / count($expenses[$j]->accountableIDs));
+								break;
+							}
+						}
+						$spentam += $am;
+						$spent .= sprintf("             spent  %4.2f", $am);
+						if ($expenses[$j]->description) 
+							$spent .= "  for  ".substr($expenses[$j]->description, 0, 17);
+						$spent .= "\n";
+					} else {
+						for ($k = 0; $k < count($expenses[$j]->accountableIDs); $k++) {
+							if ($expenses[$j]->accountableIDs[$k] == $persons[$i]->ID) {
+								$am = $expenses[$j]->amount/count($expenses[$j]->accountableIDs);
+								$owesam += $am;
+								$owes .= sprintf("             owes  %-8s %4.2f",
+									getPersonName($expenses[$j]->spenderID), $am);
+								if ($expenses[$j]->description) 
+									$owes .= "  for  ".substr($expenses[$j]->description, 0, 17);
+								$owes .= "\n";
+							}
+						}
+					}
+				}
+			}
+
+			$spent .= sprintf("           Total spent: %.2f\n", $spentam);
+			echo $spent;
+
+			$owes .= sprintf("           Total owed: %.2f\n\n", $owesam);
+			echo $owes;
+
+			if ($spentam < $owesam) 
+				printf("           Needs to pay %.2f\n", $owesam - $spentam);
+			else if ($spentam > $owesam) 
+				printf("           Will receive %.2f\n", $spentam - $owesam);
+			else echo "            No balance\n";
+
+			echo "</font></div>\n";
 		}
 
-		echo "</pre><form action=\"index.php\" method=\"get\">\n";
-		echo "<input type=\"hidden\" name=\"file\" value=\"$file\">\n";
-		echo "<input type=\"hidden\" name=\"action\" value=\"ADD\">\n";
-		echo "<input type=\"hidden\" name=\"type\" value=\"PERSON\">\n";
-		echo "<input type=\"text\" name=\"person\" size=\"16\" maxlength=\"64\">\n";
-		echo "<input type=\"submit\" value=\"Add a person\">\n";
-		echo "</form>\n";
+		echo "</pre>\n";
+		
+		if (!$closed) {
+			echo "<form action=\"index.php\" method=\"get\">\n";
+			echo "<input type=\"hidden\" name=\"file\" value=\"$file\">\n";
+			echo "<input type=\"hidden\" name=\"action\" value=\"ADD\">\n";
+			echo "<input type=\"hidden\" name=\"type\" value=\"PERSON\">\n";
+			echo "<input type=\"text\" name=\"person\" size=\"16\" maxlength=\"64\">\n";
+			echo "<input type=\"submit\" value=\"Add a person\">\n";
+			echo "</form>\n";
+		}
 	}
 
 	function displayEditPerson() {
@@ -247,7 +340,7 @@
 					deletePerson($person);
 					$list = "PERSONS";
 				} else if ($type == "EXPENSE") {
-					deleteExpense($expense);
+					deleteExpense($expense, 0);
 					$list = "EXPENSES";
 				}
 				commitChanges();

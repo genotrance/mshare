@@ -6,6 +6,8 @@
 		$person = new Person(count($persons)+1, $name);
 
 		array_push($persons, $person);
+
+		echo "Added person '$name'.\n\n";
 	}
 
 	// Add an expense
@@ -36,22 +38,29 @@
 			exit;
 		}
 
-		$expense = new Expense(count($expenses)+1, $spender, $acc, $expdate, $amount, $desc);
+		$expense = new Expense(count($expenses)+1, $spender, $acc, $expdate, $amount, $desc, 0);
 
 		array_push($expenses, $expense);
+
+		echo "Added expense with ID ".count($expense).".\n\n";
 	}
 
 	// Delete an expense based on Expense ID
-	function deleteExpense($expID) {
+	function deleteExpense($expID, $perm) {
 		global $expenses;
 
 		$eid = findExpenseID($expID);
 		if ($eid != -1) {
-			deleteArrayID(&$expenses, $eid);
+			if ($perm) deleteArrayID(&$expenses, $eid);
+			else $expenses[$eid]->deleted = 1;
 		} else {
 			echo "Invalid expense ID ".$expID;
 			exit;
 		}
+
+		echo "Expense with ID $expID deleted";
+		if ($perm) echo " permanently.\n";
+		else echo ".\n\n";
 	}
 
 	// Delete a person
@@ -65,7 +74,7 @@
 		if (($pid = findPersonName($name)) != -1) {
 			// Delete all expenses made by this person
 			for ($i = 0; $i < count($persons[$pid]->expenseList); $i++) {
-				deleteExpense($persons[$pid]->expenseList[$i]->ID);
+				deleteExpense($persons[$pid]->expenseList[$i]->ID, 1);
 			}
 
 			// Remove person from all accountable expenses
@@ -83,7 +92,7 @@
 
 			// Remove all marked expenses
 			for ($i = 0; $i < count($delexpense); $i++) {
-				deleteExpense($delexpense[$i]);
+				deleteExpense($delexpense[$i], 1);
 			}
 		} else {
 			echo "Invalid person ".$name;
@@ -92,6 +101,7 @@
 
 		deleteArrayID(&$persons, $pid);
 		sortArray(&$persons);
+		echo "Person '$name' deleted.\n\n";
 	}
 
 	// Function to rename a person
