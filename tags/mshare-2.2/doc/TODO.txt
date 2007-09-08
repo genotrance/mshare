@@ -1,0 +1,12 @@
+- Log all changes
+- History (when a person is deleted)
+- Unlimited undo using diff
+- Add A -> B -> C -> A minimization
+
+- Add email address field for a user
+- Set one user as administrator
+- Send transactions to users by email including administrator
+
+- Update authentication module as available
+
+

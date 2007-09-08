@@ -1,0 +1,31 @@
+Version 2.2
+-----------
+Improvements
+- Specify which file is selected in the dropdown box
+- Change password option functionality is now available
+- Transactions page now has a summary of expenses by description
+
+Version 2.1
+-----------
+New Features
+- List all expenses associated with a person in the PERSONS tab
+- Close a file, no longer allow writing to it
+- Expenses are only marked DELETED when deleted from the GUI. They are
+  permanently deleted when the spenderID is deleted.
+
+Improvements
+- Change spender by clicking on spender on GUI
+- Set date to current date by default
+- Set date by clicking on a date on GUI
+- Set description by clicking on a description on GUI
+- Disable javascript links when file is closed
+- Exclusive lock file before writes, shared lock before reads
+- All accountable remain unchecked by default on add expense
+- Messages are displayed when persons or expenses are added or deleted.
+- Sort by description
+
+Bug Fixes
+- Fixed PERSONS not colored to RED when modifying a person
+- If no accountable selected while adding expense, bogus error message was 
+  being displayed
+- Clicking RESTORE takes one back to the Expenses tab instead of the active tab.
