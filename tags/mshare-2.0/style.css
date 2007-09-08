@@ -1,0 +1,47 @@
+  FONT { font-family: Courier New; }
+
+  BODY { font-family: Courier New; 
+		     background-color: #CCDDEE; 
+         color: #0A00AF;
+         scrollbar-3dlight-color: #000032;
+         scrollbar-highlight-color: #D0D0D0;
+         scrollbar-shadow-color: #D0D0D0;
+         scrollbar-darkshadow-color: #000032;
+         scrollbar-arrow-color: #D0D0D0;
+         scrollbar-arrow-color: #000000;
+         scrollbar-base-color: #DDDDDD;
+         scrollbar-Track-Color: #EFEFEF;
+       }
+
+  TD { font-family: Courier New;
+       font-size: 14;
+       background-color: #CCDDEE;
+       color: #0A00AF; }
+
+  A	{ 		text-decoration: none; }
+
+  A:link {		color: #440044; }
+  A:visited {		color: #440044; }
+  A:active {		color: #220022; 
+  			font-weight: bold; }
+  A:hover { 		color: #220022; 
+  			font-weight: bold; }
+
+  A.nav {		text-align: center;
+  			border: thin black solid;
+			border-width: 1px;
+			padding: 2px; }
+
+  A.nav:active { 	background: #DD7080; }
+  A.nav:hover { 	background: #DD7080; }
+
+  A.navsel {		text-align: center;
+  			border: thin black solid;
+			border-width: 1px;
+			padding: 2px; }
+
+  A.navsel:link {	background: #DD7080; }
+  A.navsel:visited {	background: #DD7080; }
+  A.navsel:active {	background: none; }
+  A.navsel:hover {	background: none; }
+
