@@ -1,23 +1,10 @@
 - Add A -> B -> C -> A minimization
-- Update authentication module as available
-- Set date to current date by default
-- Set date by clicking on a date on GUI
-- Set description by clicking on a description on GUI
-- Drop down box with previously used descriptions
-- Change spender by clicking on spender on GUI
-- Sort by description
 - Cleaner add/change password
 - Add email address field for a user
 - Set one user as administrator
 - Send transactions to users by email including administrator
-- Close a file, no longer allow writing to it, undo this action
-- Lock file before writes
-- Unlimited undo using diff
-- History (changes made)
-- Archive data
-- Check for well-formed XML input
+- History (when a person is deleted)
 
-DONE
-- Legacy support
-- Edit person, expense
-- Select file to use
+- Update authentication module as available
+- Categorize expenses and summarize
+- Unlimited undo using diff

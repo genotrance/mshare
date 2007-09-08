@@ -8,10 +8,10 @@
 	include("misc.php");
 	include("process.php");
 
-	define("VERSION", "2.0");
+	define("VERSION", "2.1");
 	define("DATA", "data/data.xml");
 	define("LOG", "mshare2.log");
-	define("HEADER", "<head><title>mshare v".VERSION."</title><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head>");
+	define("HEADER", "<head><title>mshare v".VERSION."</title><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"><script type=\"text/javascript\" language=\"javascript\" src=\"script.js\"></script></head>");
 
 	// Object Arrays
 	$expenses = array();
@@ -25,12 +25,13 @@
 	// Internal Data
 	$totalSpent = 0;
 	$legacy = 0;		// Set to 1 if input file is in older format
+	$closed = 0; 		// Set to 1 if file is marked as closed
 
 	// Options
 	$file = DATA; 		// File to open
 	$list = "EXPENSES";	// Either "EXPENSES", "PERSONS", "TRANSACTIONS", "LOGOUT"
-	$sort = "ID";		// Either "ID", "NAME", "AMOUNT" for list EXPENSES
-	$action = "";		// Either "ADD", "DELETE", "EDIT", "CONVERT", "RESTORE", "RENUMBER"
+	$sort = "ID";		// Either "ID", "NAME", "AMOUNT", "DESCRIPTION" for list EXPENSES
+	$action = "";		// Either "ADD", "DELETE", "EDIT", "CONVERT", "RESTORE", "RENUMBER", "CLOSE", "CHANGEPASS"
 	$type = "";		// Either "PERSON" or "EXPENSE"
 	$person = "";		// Contains person's name in an ADD or DELETE function
 	$newperson = "~";	// Contains person's new name in EDIT function
@@ -80,6 +81,10 @@
 		swapFiles();
 		displayNav();
 		echo "File $file restored.\n\n";
+	} else if ($action == "CLOSE") {
+		$closed = 1;
+		displayNav();
+		echo "File $file has been closed.\n\n";
 	} else displayNav();
 
 	// Parse data
@@ -89,6 +94,10 @@
 
 	if ($legacy && $action != "CONVERT") {
 		echo "Click <a href=\"index.php?file=$file&list=$list&action=CONVERT\">here</a> to convert file to newer XML format.\n\n";
+	}
+
+	if ($action == "CLOSE") {
+		commitChanges();
 	}
 
 	displayPage();

@@ -7,6 +7,11 @@
 		global $expenses;
 		global $persons;
 		global $xml;
+		global $closed;
+
+		if ($xml['mshare']['state'] != null) {
+			if ($xml['mshare']['state'] == "CLOSED") $closed = 1;
+		}
 
 		for ($i = 0; $i < count($xml['mshare']['persons']); $i++) {
 			$person = new Person(
@@ -18,13 +23,25 @@
 		sortArray($persons);
 
 		for ($i = 0; $i < count($xml['mshare']['expenses']); $i++) {
-			$expense = new Expense(
-				$xml['mshare']['expenses'][$i]['ID'], 
-				$xml['mshare']['expenses'][$i]['spenderID'], 
-				$xml['mshare']['expenses'][$i]['accountableIDs'], 
-				$xml['mshare']['expenses'][$i]['expenseDate'], 
-				$xml['mshare']['expenses'][$i]['amount'], 
-				$xml['mshare']['expenses'][$i]['description']);
+			if ($xml['mshare']['expenses'][$i][state] != "DELETED") {
+				$expense = new Expense(
+					$xml['mshare']['expenses'][$i]['ID'], 
+					$xml['mshare']['expenses'][$i]['spenderID'], 
+					$xml['mshare']['expenses'][$i]['accountableIDs'], 
+					$xml['mshare']['expenses'][$i]['expenseDate'], 
+					$xml['mshare']['expenses'][$i]['amount'], 
+					$xml['mshare']['expenses'][$i]['description'],
+					0);
+			} else {
+				$expense = new Expense(
+					$xml['mshare']['expenses'][$i]['ID'], 
+					$xml['mshare']['expenses'][$i]['spenderID'], 
+					$xml['mshare']['expenses'][$i]['accountableIDs'], 
+					$xml['mshare']['expenses'][$i]['expenseDate'], 
+					$xml['mshare']['expenses'][$i]['amount'], 
+					$xml['mshare']['expenses'][$i]['description'],
+					1);
+			}
 
 			array_push($expenses, $expense);
 		}
@@ -68,8 +85,13 @@
 	function toXML() {
 		global $persons;
 		global $expenses;
+		global $action;
 
-		$xmlString = "<?xml version='1.0' ?>\n<mshare version=\"".VERSION."\">\n";
+		$xmlString = "<?xml version='1.0' ?>\n<mshare version=\"".VERSION."\"";
+		
+		if ($action == "CLOSE") $xmlString .= " state=\"CLOSED\"";
+
+		$xmlString .= ">\n";
 
 		if (count($persons) > 0) {
 			$xmlString .= "\t<persons>\n";
@@ -100,7 +122,13 @@
 
 				$xmlString .= "expenseDate=\"".$expenses[$i]->expenseDate."\" ";
 				$xmlString .= "amount=\"".$expenses[$i]->amount."\" ";
-				$xmlString .= "description=\"".$expenses[$i]->description."\"/>\n";
+				$xmlString .= "description=\"".$expenses[$i]->description."\"";     
+
+				if ($expenses[$i]->deleted) {
+					$xmlString .= " state=\"DELETED\"";
+				}
+
+				$xmlString .= "/>\n";
 			}
 
 			$xmlString .= "\t</expenses>\n";
@@ -171,7 +199,7 @@
 				}
 			}
 
-			$expense = new Expense($ID, $spenderID, $accID, $date, $amount, $desc);
+			$expense = new Expense($ID, $spenderID, $accID, $date, $amount, $desc, 0);
 			array_push($expenses, $expense);
 		}
 
@@ -199,22 +227,36 @@
 
 		$xmlString = toXML();
 
-		$f = fopen($file.".bak", "w");
-		fputs($f, $xmlString);
-		fclose($f);
+		$fp = fopen($file.".bak", "w");
+		flock($fp, LOCK_EX);
+		fputs($fp, $xmlString);
+		flock($fp, LOCK_UN);
+		fclose($fp);
 
 		swapFiles();
 	}		
+
+	// Load file data into a string with lock
+	function getFileStr() {
+		global $file;
+
+		$string = "";
+
+		$fp = fopen($file, "r");
+		flock($fp, LOCK_SH);
+		while(!feof($fp)) {
+			$buf = fgets($fp);
+			$string .= $buf;
+		}
+		flock($fp, LOCK_UN);
+		fclose($fp);
+
+		return $string;
+	}
 	
 	// Load XML data to file and convert to objects
 	function parseXML() {
-		global $file;
-
-		$xmlString = file_get_contents($file);
-		if (!$xmlString) {
-			echo "Unable to load file ".$file;
-			exit;
-		}
+		$xmlString = getFileStr();
 
 		if (!strstr($xmlString, "<?xml version='1.0' ?>")) {
 			parseBin();

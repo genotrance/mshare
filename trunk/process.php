@@ -149,15 +149,17 @@
 		global $transactions;
 
 		for ($i = 0; $i < count($expenses); $i++) {
-			$numAcc = count($expenses[$i]->accountableIDs);
+			if (!$expenses[$i]->deleted) {
+				$numAcc = count($expenses[$i]->accountableIDs);
 
-			for ($j = 0; $j < $numAcc; $j++) {
-				// Don't add a transaction of A -> A
-				if ($expenses[$i]->accountableIDs[$j] == $expenses[$i]->spenderID) continue;
+				for ($j = 0; $j < $numAcc; $j++) {
+					// Don't add a transaction of A -> A
+					if ($expenses[$i]->accountableIDs[$j] == $expenses[$i]->spenderID) continue;
 
-				addTransaction(
-					$expenses[$i]->accountableIDs[$j], $expenses[$i]->spenderID, 
-					$numAcc, $expenses[$i]->ID, $expenses[$i]->amount);
+					addTransaction(
+						$expenses[$i]->accountableIDs[$j], $expenses[$i]->spenderID, 
+						$numAcc, $expenses[$i]->ID, $expenses[$i]->amount);
+				}
 			}
 		}
 
