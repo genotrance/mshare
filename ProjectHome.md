@@ -1,0 +1,1 @@
+Money Share is an expense management tool that can be used keep track of expenses among several people. Expenses made on behalf of people can be kept track of and recovered when balancing accounts. The utility also reduces the number of exchanges required in order to balance the accounts.
